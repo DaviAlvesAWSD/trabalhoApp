@@ -26,8 +26,9 @@ export default function Login({navigation}){
         const auth = getAuth(firebaseApp);
         signInWithEmailAndPassword(auth,email, senha )
             .then((userCrencial) =>{
-                console.error("Logado com sucesso:", userCrencial.user);
                 let user = userCrencial.user;
+                setEmail("");
+                setSenha("");
                 navigation.navigate("TelaPrincipal", {idUser: user.uid})
             })
             .catch((error) => {

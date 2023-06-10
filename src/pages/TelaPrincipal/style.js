@@ -6,7 +6,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 0,
         width: '100%',
-        height: '3.5%',
+        height: '70px',
         backgroundColor: '#03B6EF',
         borderBottomLeftRadius: 40,
         borderBottomRightRadius: 40,
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     buttonNewSolicitacao:{
         width:'60px',
         height:'60px',
-        position:'absolute',
+        position:'fixed',
         bottom: 30,
         left:20,
         backgroundColor: '#03B6EF',

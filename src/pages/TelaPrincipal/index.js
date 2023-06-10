@@ -16,10 +16,13 @@ import { getAuth, signOut  } from "firebase/auth";
 import { collection, deleteDoc, doc, onSnapshot, query } from "firebase/firestore";
 import styles from "./style.js"
 
+import Fuse from 'fuse.js';
+
 export default function TelaPrincipal({navigation, route}){
     const [task, setTask] = useState([]);
-
     const [searchText, setSearchText] = useState("");
+    const [filteredTask, setFilteredTask] = useState([]); // Novo estado para armazenar os resultados filtrados
+  
 
     const database = getFirestore(firebaseApp);
 
@@ -63,6 +66,27 @@ export default function TelaPrincipal({navigation, route}){
         return () => pesquisar();
     }, []);
 
+    const handleSearch = () => {
+        const fuse = new Fuse(task, { keys: ['nome', 'tipo'] });
+        
+        // Verificar se o texto de pesquisa está vazio
+        if (searchText === '') {
+            setFilteredTask(task); // Atribuir todos os dados à lista de tarefas filtradas
+        } else {
+            const results = fuse.search(searchText);
+            setFilteredTask(results.map((result) => result.item));
+        }
+    };
+
+    useEffect(() => {
+        const fuse = new Fuse(task, { keys: ['nome', 'tipo'] });
+        
+        // Verificar se o texto de pesquisa está vazio
+        if (searchText === '') {
+          setFilteredTask(task); // Atribuir todos os dados à lista de tarefas filtradas
+        }
+      }, [searchText, task]);
+
     return(
         <>
             <View style={styles.container}>
@@ -91,7 +115,7 @@ export default function TelaPrincipal({navigation, route}){
                         onChangeText={(text) => setSearchText(text)}
                         value={searchText}
                     />
-                    <TouchableOpacity style={styles.searchButton}>
+                    <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
                         <FontAwesome name="search" size={20} color="#fff" />
                     </TouchableOpacity>
                 </View>
@@ -103,7 +127,7 @@ export default function TelaPrincipal({navigation, route}){
                 <FlatList 
                     style={styles.list}
                     showsVerticalScrollIndicator={false}
-                    data={task}
+                    data={filteredTask }
                     renderItem={({item}) => {
                         return (
                             <View style={styles.Insumos}>
@@ -124,7 +148,10 @@ export default function TelaPrincipal({navigation, route}){
                 />
                 <TouchableOpacity 
                     style={styles.buttonNewSolicitacao}
-                    onPress={() => navigation.navigate("Solicitacao insumo", route.params.idUser)}
+                    onPress={() => {
+                        setSearchText('');
+                        navigation.navigate("Solicitacao insumo", route.params.idUser);
+                    }}
                 >
                     <Text style={styles.iconButton}>+</Text>
                 </TouchableOpacity>

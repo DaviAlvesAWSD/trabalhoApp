@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     buttonNewTask:{
         width:60,
         height:60,
-        position:"absolute",
+        position:"fixed",
         bottom: 30,
         left:20,
         backgroundColor:"#F92e6a",

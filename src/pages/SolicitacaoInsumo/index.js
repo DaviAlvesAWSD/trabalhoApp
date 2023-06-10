@@ -13,13 +13,15 @@ import firebaseApp from "../../config/firebaseconfig";
 import { collection, deleteDoc, doc, onSnapshot, query } from "firebase/firestore";
 import styles from "./style.js"
 
+import Fuse from 'fuse.js';
+
 export default function SolicitacaoInsumo({navigation, route}){
+    const [task, setTask] = useState([]);
+    const [searchText, setSearchText] = useState("");
+    const [filteredTask, setFilteredTask] = useState([]); // Novo estado para armazenar os resultados filtrados
 
     const database = getFirestore(firebaseApp);
 
-    const [task, setTask] = useState([]);
-
-    const [searchText, setSearchText] = useState("");
 
     useEffect(()=>{
         const q = query(collection(database ,"SolicitacaoInsumo"));
@@ -36,13 +38,37 @@ export default function SolicitacaoInsumo({navigation, route}){
         return () => pesquisar();
     }, []);
 
+    const handleSearch = () => {
+        const fuse = new Fuse(task, { keys: ['descricao', 'paciente', 'quantidade', 'status'] });
+        
+        // Verificar se o texto de pesquisa está vazio
+        if (searchText === '') {
+            setFilteredTask(task); // Atribuir todos os dados à lista de tarefas filtradas
+        } else {
+            const results = fuse.search(searchText);
+            setFilteredTask(results.map((result) => result.item));
+        }
+    };
+
+    useEffect(() => {
+        const fuse = new Fuse(task, { keys: ['descricao', 'paciente', 'quantidade', 'status'] });
+        
+        // Verificar se o texto de pesquisa está vazio
+        if (searchText === '') {
+          setFilteredTask(task); // Atribuir todos os dados à lista de tarefas filtradas
+        }
+      }, [searchText, task]);
+
     return(
         <>
             <View style={styles.container}>
                 <View style={styles.header}>
                     <TouchableOpacity
                         style={styles.backButton}
-                        onPress={() => navigation.goBack()}
+                        onPress={() => {
+                            setSearchText('');
+                            navigation.goBack();
+                        }}
                     >
                         <FontAwesome name="arrow-left" size={20} color="#fff" />
                     </TouchableOpacity>
@@ -57,7 +83,7 @@ export default function SolicitacaoInsumo({navigation, route}){
                         onChangeText={(text) => setSearchText(text)}
                         value={searchText}
                     />
-                    <TouchableOpacity style={styles.searchButton}>
+                    <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
                         <FontAwesome name="search" size={20} color="#fff" />
                     </TouchableOpacity>
                 </View>
@@ -70,7 +96,7 @@ export default function SolicitacaoInsumo({navigation, route}){
                 <FlatList 
                     style={styles.list}
                     showsVerticalScrollIndicator={false}
-                    data={task}
+                    data={filteredTask}
                     renderItem={({item}) => {
                         let statusColor;
 
@@ -114,7 +140,10 @@ export default function SolicitacaoInsumo({navigation, route}){
                 />
                 <TouchableOpacity 
                     style={styles.buttonNewSolicitacao}
-                    onPress={() => navigation.navigate("New Solicitacao", route.params.idUser)}
+                    onPress={() => {
+                        setSearchText('');
+                        navigation.navigate("New Solicitacao", route.params.idUser);
+                    }}
                 >
                     <Text style={styles.iconButton}>+</Text>
                 </TouchableOpacity>
